@@ -1,9 +1,13 @@
-import { Search, Menu, Bell, X } from 'lucide-react';
+import { Search, Menu, Bell, X, PenSquare, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { user, isAdmin, signIn, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 w-full">
@@ -12,41 +16,34 @@ export default function Header() {
 
           {/* 로고 */}
           <div className="flex items-center gap-4 sm:gap-8 min-w-0">
-            <a href="/" className="flex items-center shrink-0" aria-label="FinanceHub 홈">
+            <Link to="/" className="flex items-center shrink-0" aria-label="FinanceHub 홈">
               <img
                 src="/logo.png"
                 alt="FinanceHub 로고"
                 className="h-10 sm:h-12 lg:h-14 w-auto object-contain"
               />
-            </a>
+            </Link>
 
             {/* PC 네비게이션 */}
             <nav className="hidden md:flex items-center gap-4 lg:gap-6">
-              <a href="#" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">부동산</a>
-              <a href="#" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">주식</a>
-              <a href="#" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">코인</a>
-              <a href="#" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">경제분석</a>
+              {['부동산', '주식', '코인', '경제분석'].map((item) => (
+                <Link key={item} to={`/?category=${item}`} className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                  {item}
+                </Link>
+              ))}
             </nav>
           </div>
 
           {/* 우측 영역 */}
-          <div className="flex items-center gap-1 sm:gap-3">
-            {/* PC 검색바 */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* PC 검색 */}
             <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
               <Search className="w-4 h-4 text-gray-500 shrink-0" />
-              <input
-                type="text"
-                placeholder="검색..."
-                className="bg-transparent border-none outline-none text-sm w-32 lg:w-40"
-              />
+              <input type="text" placeholder="검색..." className="bg-transparent border-none outline-none text-sm w-32 lg:w-40" />
             </div>
 
             {/* 모바일 검색 버튼 */}
-            <button
-              className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              aria-label="검색"
-            >
+            <button className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors" onClick={() => setIsSearchOpen(!isSearchOpen)} aria-label="검색">
               {isSearchOpen ? <X className="w-5 h-5 text-gray-600" /> : <Search className="w-5 h-5 text-gray-600" />}
             </button>
 
@@ -54,11 +51,44 @@ export default function Header() {
               <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
             </button>
 
-            <button className="hidden md:block bg-blue-600 text-white px-4 lg:px-6 py-1.5 sm:py-2 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium">
-              구독하기
-            </button>
+            {/* 관리자: 글쓰기 버튼 */}
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/admin/write')}
+                className="hidden sm:flex items-center gap-1.5 bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                <PenSquare className="w-4 h-4" />
+                글 쓰기
+              </button>
+            )}
 
-            {/* 모바일 햄버거 메뉴 */}
+            {/* 로그인/유저 영역 */}
+            {user ? (
+              <div className="flex items-center gap-1 sm:gap-2">
+                <img
+                  src={user.photoURL ?? ''}
+                  alt={user.displayName ?? ''}
+                  className="w-8 h-8 rounded-full border-2 border-blue-200 object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <button
+                  onClick={() => signOut()}
+                  className="hidden sm:flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors p-1"
+                  aria-label="로그아웃"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={signIn}
+                className="hidden md:block bg-gray-900 text-white px-4 py-1.5 rounded-full hover:bg-gray-700 transition-colors text-sm font-medium"
+              >
+                로그인
+              </button>
+            )}
+
+            {/* 모바일 햄버거 */}
             <button
               className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -74,12 +104,7 @@ export default function Header() {
           <div className="md:hidden pb-3">
             <div className="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2.5">
               <Search className="w-4 h-4 text-gray-500 shrink-0" />
-              <input
-                type="text"
-                placeholder="검색어를 입력하세요..."
-                className="bg-transparent border-none outline-none text-sm flex-1"
-                autoFocus
-              />
+              <input type="text" placeholder="검색어를 입력하세요..." className="bg-transparent border-none outline-none text-sm flex-1" autoFocus />
             </div>
           </div>
         )}
@@ -89,19 +114,33 @@ export default function Header() {
           <nav className="md:hidden py-3 border-t border-gray-100">
             <div className="flex flex-col gap-1">
               {['부동산', '주식', '코인', '경제분석'].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="flex items-center px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <Link key={item} to={`/?category=${item}`} className="flex items-center px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   {item}
-                </a>
+                </Link>
               ))}
-              <div className="pt-2 px-3">
-                <button className="w-full bg-blue-600 text-white py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium">
-                  구독하기
-                </button>
+              <div className="pt-2 px-3 flex flex-col gap-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => { navigate('/admin/write'); setIsMenuOpen(false); }}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    <PenSquare className="w-4 h-4" />
+                    새 글 쓰기
+                  </button>
+                )}
+                {user ? (
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <img src={user.photoURL ?? ''} alt="" className="w-7 h-7 rounded-full" referrerPolicy="no-referrer" />
+                      <span className="text-sm text-gray-700">{user.displayName}</span>
+                    </div>
+                    <button onClick={() => signOut()} className="text-sm text-red-500 hover:underline">로그아웃</button>
+                  </div>
+                ) : (
+                  <button onClick={signIn} className="w-full bg-gray-900 text-white py-2.5 rounded-full hover:bg-gray-700 transition-colors font-medium">
+                    Google 로그인
+                  </button>
+                )}
               </div>
             </div>
           </nav>
