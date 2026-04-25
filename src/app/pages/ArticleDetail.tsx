@@ -97,14 +97,14 @@ export default function ArticleDetail() {
 
       <main className="w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
 
-        {/* 뒤로가기 */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors mb-6 group"
+        {/* 뒤로가기 - 히스토리 있으면 뒤로, 없으면 홈으로 */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors mb-6 group w-fit"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm font-medium">목록으로</span>
-        </button>
+        </Link>
 
         <article className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
           {/* 대표 이미지 */}
