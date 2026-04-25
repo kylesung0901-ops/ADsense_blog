@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router';
 import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { ImagePlus, Save, ArrowLeft, LogIn } from 'lucide-react';
+import { ImagePlus, Save, ArrowLeft } from 'lucide-react';
 import { db, storage } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../components/Header';
+import LoginModal from '../components/LoginModal';
 
 const CATEGORIES = ['부동산', '주식', '코인', '경제분석'];
 
@@ -113,25 +114,17 @@ export default function AdminWrite() {
     }
   };
 
-  // 비로그인 상태
+  // 비로그인 상태 → 로그인 모달 자동 표시
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="flex flex-col items-center justify-center h-96 gap-6">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">관리자 로그인 필요</h2>
-            <p className="text-gray-500">kylesung0901@gmail.com 계정으로 로그인하세요.</p>
-          </div>
-          <button
-            onClick={signIn}
-            className="flex items-center gap-3 bg-white border-2 border-gray-200 px-6 py-3 rounded-full hover:border-blue-400 hover:shadow-md transition-all font-medium"
-          >
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-            Google로 로그인
-          </button>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <h2 className="text-2xl font-bold text-gray-900">관리자 로그인 필요</h2>
+          <p className="text-gray-500">kylesung0901@gmail.com 계정으로 로그인하세요.</p>
           <Link to="/" className="text-sm text-gray-400 hover:text-blue-600">홈으로 돌아가기</Link>
         </div>
+        <LoginModal onClose={() => navigate('/')} />
       </div>
     );
   }

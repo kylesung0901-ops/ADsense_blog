@@ -1,5 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+import {
+  User,
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut as firebaseSignOut,
+} from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 
 const ADMIN_EMAIL = 'kylesung0901@gmail.com';
@@ -8,7 +16,10 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   loading: boolean;
-  signIn: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -25,16 +36,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const signIn = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      if (result.user.email !== ADMIN_EMAIL) {
-        await firebaseSignOut(auth);
-        alert('관리자 계정만 로그인 가능합니다.');
-      }
-    } catch (e: any) {
-      if (e.code !== 'auth/popup-closed-by-user') console.error(e);
+  const signInWithGoogle = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    if (result.user.email !== ADMIN_EMAIL) {
+      await firebaseSignOut(auth);
+      throw new Error('관리자 계정만 로그인 가능합니다.');
     }
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    if (result.user.email !== ADMIN_EMAIL) {
+      await firebaseSignOut(auth);
+      throw new Error('관리자 계정만 로그인 가능합니다.');
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string) => {
+    if (email !== ADMIN_EMAIL) throw new Error('관리자 계정만 가입 가능합니다.');
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    if (result.user.email !== ADMIN_EMAIL) {
+      await firebaseSignOut(auth);
+      throw new Error('관리자 계정만 로그인 가능합니다.');
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
   const signOut = () => firebaseSignOut(auth);
@@ -44,7 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAdmin: user?.email === ADMIN_EMAIL,
       loading,
-      signIn,
+      signInWithGoogle,
+      signInWithEmail,
+      signUpWithEmail,
+      resetPassword,
       signOut,
     }}>
       {children}
