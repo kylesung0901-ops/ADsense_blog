@@ -149,13 +149,22 @@ export default function ArticleDetail() {
             </div>
 
             {/* 본문 */}
-            <div className="prose prose-gray max-w-none">
+            <div>
+              {/* 요약 인용구 */}
               <p className="text-base sm:text-lg text-gray-700 font-medium leading-relaxed mb-6 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
                 {post.excerpt}
               </p>
-              <div className="text-gray-700 leading-relaxed text-sm sm:text-base whitespace-pre-line">
-                {post.content}
-              </div>
+              {/* HTML 본문 or 텍스트 본문 자동 판별 */}
+              {post.content?.includes('<') ? (
+                <div
+                  className="article-content"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+              ) : (
+                <div className="article-content text-gray-700 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                  {post.content}
+                </div>
+              )}
             </div>
 
             {/* 광고 */}

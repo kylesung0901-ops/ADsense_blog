@@ -1,4 +1,5 @@
 import { TrendingUp, Mail } from 'lucide-react';
+import { Link } from 'react-router';
 import { ImageWithFallback } from './ImageWithFallback';
 
 interface PopularPost {
@@ -6,6 +7,7 @@ interface PopularPost {
   title: string;
   views: number;
   imageUrl: string;
+  articleId: string;
 }
 
 export default function Sidebar() {
@@ -14,19 +16,22 @@ export default function Sidebar() {
       id: 1,
       title: '2026년 부동산 시장 전망: 금리 인하가 미치는 영향',
       views: 15234,
-      imageUrl: 'https://images.unsplash.com/photo-1768223933860-6d62bc5b2ff3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400'
+      imageUrl: 'https://images.unsplash.com/photo-1768223933860-6d62bc5b2ff3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
+      articleId: 'static-1',
     },
     {
       id: 2,
       title: '비트코인 반감기 이후 암호화폐 시장 분석',
       views: 12890,
-      imageUrl: 'https://images.unsplash.com/photo-1672071673701-4c9a564c8046?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400'
+      imageUrl: 'https://images.unsplash.com/photo-1672071673701-4c9a564c8046?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
+      articleId: 'static-3',
     },
     {
       id: 3,
       title: 'AI 기술주 투자 가이드: 엔비디아 vs AMD',
       views: 11456,
-      imageUrl: 'https://images.unsplash.com/photo-1638481826540-7710b13f7d53?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400'
+      imageUrl: 'https://images.unsplash.com/photo-1638481826540-7710b13f7d53?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
+      articleId: 'static-2',
     }
   ];
 
@@ -59,7 +64,7 @@ export default function Sidebar() {
 
         <div className="space-y-3 sm:space-y-4">
           {popularPosts.map((post, index) => (
-            <div key={post.id} className="flex gap-3 group cursor-pointer items-start">
+            <Link key={post.id} to={`/article/${post.articleId}`} className="flex gap-3 group cursor-pointer items-start hover:bg-gray-50 rounded-lg p-1 -mx-1 transition-colors">
               <span className="text-xl sm:text-2xl font-bold text-gray-200 group-hover:text-blue-600 transition-colors leading-tight mt-0.5 shrink-0 w-6">
                 {index + 1}
               </span>
@@ -74,7 +79,7 @@ export default function Sidebar() {
                 alt={post.title}
                 className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg shrink-0"
               />
-            </div>
+            </Link>
           ))}
         </div>
       </div>

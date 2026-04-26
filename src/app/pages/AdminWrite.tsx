@@ -7,6 +7,7 @@ import { db, storage } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../components/Header';
 import LoginModal from '../components/LoginModal';
+import RichEditor from '../components/RichEditor';
 
 const CATEGORIES = ['부동산', '주식', '코인', '경제분석'];
 
@@ -31,17 +32,15 @@ const empty: FormData = {
 export default function AdminWrite() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { user, isAdmin, signIn } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [form, setForm] = useState<FormData>(empty);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
   const isEdit = !!id;
 
-  // 수정 모드: 기존 데이터 불러오기
   useEffect(() => {
     if (!isEdit) return;
     getDoc(doc(db, 'posts', id!)).then((snap) => {
@@ -95,7 +94,6 @@ export default function AdminWrite() {
         likes: 0,
         comments: 0,
       };
-
       if (isEdit) {
         await updateDoc(doc(db, 'posts', id!), payload);
         navigate(`/article/${id}`);
@@ -114,7 +112,6 @@ export default function AdminWrite() {
     }
   };
 
-  // 비로그인 상태 → 로그인 모달 자동 표시
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -129,13 +126,12 @@ export default function AdminWrite() {
     );
   }
 
-  // 로그인했지만 관리자 아님
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex flex-col items-center justify-center h-96 gap-4">
-          <p className="text-gray-600 text-lg">관리자 권한이 없습니다.</p>
+          <p className="text-gray-600 text-lg">관리자 권한이 없습니다. (로그인된 이메일: {user.email})</p>
           <Link to="/" className="text-blue-600 hover:underline">홈으로</Link>
         </div>
       </div>
@@ -145,8 +141,7 @@ export default function AdminWrite() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
-      <main className="w-full max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
+      <main className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
         {/* 상단 */}
         <div className="flex items-center justify-between mb-6">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors group">
@@ -157,100 +152,98 @@ export default function AdminWrite() {
           <div className="w-16" />
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-8 space-y-6 shadow-sm">
-
-          {/* 이미지 업로드 */}
-          <div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* 대표 이미지 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
             <label className="block text-sm font-semibold text-gray-700 mb-2">대표 이미지</label>
             <div
               onClick={() => fileRef.current?.click()}
               className="relative w-full h-48 sm:h-64 rounded-xl border-2 border-dashed border-gray-300 overflow-hidden cursor-pointer hover:border-blue-400 transition-colors bg-gray-50 flex items-center justify-center"
             >
-              {imagePreview ? (
-                <img src={imagePreview} alt="미리보기" className="w-full h-full object-cover" />
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-gray-400">
-                  <ImagePlus className="w-10 h-10" />
-                  <span className="text-sm">클릭하여 이미지 업로드</span>
-                </div>
-              )}
+              {imagePreview
+                ? <img src={imagePreview} alt="미리보기" className="w-full h-full object-cover" />
+                : <div className="flex flex-col items-center gap-2 text-gray-400">
+                    <ImagePlus className="w-10 h-10" />
+                    <span className="text-sm">클릭하여 대표 이미지 업로드</span>
+                  </div>
+              }
             </div>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             {uploading && <p className="text-xs text-blue-500 mt-1">이미지 업로드 중...</p>}
           </div>
 
-          {/* 카테고리 + 추천 */}
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[140px]">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">카테고리 *</label>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
+          {/* 기본 정보 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex-1 min-w-[140px]">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">카테고리 *</label>
+                <select
+                  value={form.category}
+                  onChange={e => setForm({ ...form, category: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.featured}
+                    onChange={e => setForm({ ...form, featured: e.target.checked })}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                  <span className="text-sm font-semibold text-gray-700">추천 포스트 (메인 상단)</span>
+                </label>
+              </div>
             </div>
-            <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-                  className="w-4 h-4 accent-blue-600"
-                />
-                <span className="text-sm font-semibold text-gray-700">추천 포스트</span>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">제목 *</label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={e => setForm({ ...form, title: e.target.value })}
+                placeholder="기사 제목을 입력하세요"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">요약 * <span className="text-gray-400 font-normal">(목록에 표시되는 짧은 설명)</span></label>
+              <textarea
+                value={form.excerpt}
+                onChange={e => setForm({ ...form, excerpt: e.target.value })}
+                placeholder="기사 요약 (2~3문장으로 핵심 내용 요약)"
+                rows={3}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                required
+              />
+            </div>
+          </div>
+
+          {/* 리치 텍스트 에디터 본문 */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 pt-5 pb-3 border-b border-gray-100">
+              <label className="block text-sm font-semibold text-gray-700">
+                본문 * <span className="text-gray-400 font-normal">— 아래 에디터에서 신문사처럼 작성하세요</span>
               </label>
             </div>
-          </div>
-
-          {/* 제목 */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">제목 *</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="기사 제목을 입력하세요"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+            <RichEditor
+              content={form.content}
+              onChange={html => setForm(prev => ({ ...prev, content: html }))}
             />
           </div>
 
-          {/* 요약 */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">요약 * <span className="text-gray-400 font-normal">(목록에 표시)</span></label>
-            <textarea
-              value={form.excerpt}
-              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-              placeholder="기사 요약 (2~3문장)"
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              required
-            />
-          </div>
-
-          {/* 본문 */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">본문 * <span className="text-gray-400 font-normal">(줄바꿈 지원)</span></label>
-            <textarea
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              placeholder="기사 본문을 입력하세요. 빈 줄로 문단을 구분합니다."
-              rows={20}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono"
-              required
-            />
-          </div>
-
-          {/* 저장 버튼 */}
+          {/* 발행 버튼 */}
           <button
             type="submit"
             disabled={saving || uploading}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3.5 rounded-xl hover:bg-blue-700 transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 transition-colors font-semibold text-lg disabled:opacity-60 disabled:cursor-not-allowed shadow-lg"
           >
-            <Save className="w-4 h-4" />
-            {saving ? '저장 중...' : isEdit ? '수정 완료' : '포스트 발행'}
+            <Save className="w-5 h-5" />
+            {saving ? '저장 중...' : isEdit ? '수정 완료' : '📰 포스트 발행'}
           </button>
         </form>
       </main>

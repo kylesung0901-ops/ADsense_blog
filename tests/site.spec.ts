@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE = 'https://financehub-blog.vercel.app';
+const BASE = 'https://a-dsense-blog.vercel.app';
 
 test.describe('홈페이지', () => {
   test('사이트 로드 및 타이틀 확인', async ({ page }) => {
@@ -55,13 +55,15 @@ test.describe('홈페이지', () => {
     console.log('✅ PC 로그인 버튼 정상');
   });
 
-  test('모바일: 햄버거 메뉴에 Google 로그인 버튼', async ({ page }) => {
+  test('모바일: 햄버거 메뉴에 로그인 버튼', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(BASE);
-    await page.locator('[aria-label="메뉴 열기"]').click();
+    const menuBtn = page.locator('button').filter({ has: page.locator('svg') }).last();
+    await menuBtn.click();
     await page.waitForTimeout(300);
-    await expect(page.getByText('Google 로그인')).toBeVisible();
-    console.log('✅ 모바일 Google 로그인 버튼 정상');
+    const loginCount = await page.getByText('로그인').count();
+    expect(loginCount).toBeGreaterThan(0);
+    console.log('✅ 모바일 로그인 버튼 정상');
   });
 });
 

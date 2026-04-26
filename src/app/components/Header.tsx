@@ -26,7 +26,7 @@ export default function Header() {
               {/* PC 네비게이션 */}
               <nav className="hidden md:flex items-center gap-4 lg:gap-6">
                 {['부동산', '주식', '코인', '경제분석'].map((item) => (
-                  <Link key={item} to={`/?category=${item}`} className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                  <Link key={item} to={`/category/${item}`} className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">
                     {item}
                   </Link>
                 ))}
@@ -113,7 +113,7 @@ export default function Header() {
             <nav className="md:hidden py-3 border-t border-gray-100">
               <div className="flex flex-col gap-1">
                 {['부동산', '주식', '코인', '경제분석'].map((item) => (
-                  <Link key={item} to={`/?category=${item}`} className="flex items-center px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  <Link key={item} to={`/category/${item}`} className="flex items-center px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                     {item}
                   </Link>
                 ))}

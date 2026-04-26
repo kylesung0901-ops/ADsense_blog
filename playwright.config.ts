@@ -6,7 +6,7 @@ export default defineConfig({
   retries: 1,
   reporter: 'list',
   use: {
-    baseURL: 'https://financehub-blog.vercel.app',
+    baseURL: 'https://a-dsense-blog.vercel.app',
     headless: true,
     screenshot: 'only-on-failure',
   },
