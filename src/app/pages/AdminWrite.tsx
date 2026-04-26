@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router';
-import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, updateDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ImagePlus, Save, ArrowLeft } from 'lucide-react';
 import { db, storage } from '../../lib/firebase';
@@ -102,6 +102,44 @@ export default function AdminWrite() {
           ...payload,
           createdAt: serverTimestamp(),
         });
+
+        // 구독자 이메일 발송 큐 생성
+        // Firebase "Trigger Email" 확장 프로그램이 mail 컬렉션을 감시해 자동 발송
+        try {
+          const subscribers = await getDocs(collection(db, 'subscribers'));
+          const articleUrl = `https://a-dsense-blog.vercel.app/article/${docRef.id}`;
+          await Promise.all(
+            subscribers.docs
+              .filter(d => d.data().active !== false)
+              .map(sub =>
+                addDoc(collection(db, 'mail'), {
+                  to: sub.data().email,
+                  message: {
+                    subject: `[FinanceHub] 새 기사: ${form.title}`,
+                    html: `
+                      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+                        <div style="background:#1e3a5f;padding:16px 20px;border-radius:8px 8px 0 0">
+                          <h1 style="color:#fff;margin:0;font-size:20px">FinanceHub</h1>
+                        </div>
+                        <div style="background:#f9fafb;padding:24px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb">
+                          <span style="background:#dbeafe;color:#1d4ed8;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600">${form.category}</span>
+                          <h2 style="margin:16px 0 8px;font-size:22px;color:#111827">${form.title}</h2>
+                          <p style="color:#6b7280;line-height:1.7;margin:0 0 20px">${form.excerpt}</p>
+                          <a href="${articleUrl}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">기사 전문 읽기 →</a>
+                          <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb"/>
+                          <p style="color:#9ca3af;font-size:12px">수신 거부는 <a href="mailto:kylesung0901@gmail.com">kylesung0901@gmail.com</a>으로 문의하세요.</p>
+                        </div>
+                      </div>
+                    `,
+                  },
+                  createdAt: serverTimestamp(),
+                })
+              )
+          );
+        } catch {
+          // 이메일 큐 실패는 포스팅에 영향 없음
+        }
+
         navigate(`/article/${docRef.id}`);
       }
     } catch (err) {
