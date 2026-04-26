@@ -2,7 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import {
   User,
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -30,18 +31,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 구글 로그인 리디렉션 결과 처리
+    getRedirectResult(auth).then(async (result) => {
+      if (result?.user && result.user.email !== ADMIN_EMAIL) {
+        await firebaseSignOut(auth);
+      }
+    }).catch(() => {});
+
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
     });
   }, []);
 
+  // Popup 대신 Redirect 방식 사용 → unauthorized-domain 오류 우회
   const signInWithGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    if (result.user.email !== ADMIN_EMAIL) {
-      await firebaseSignOut(auth);
-      throw new Error('관리자 계정만 로그인 가능합니다.');
-    }
+    await signInWithRedirect(auth, googleProvider);
   };
 
   const signInWithEmail = async (email: string, password: string) => {

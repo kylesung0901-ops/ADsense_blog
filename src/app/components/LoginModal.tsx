@@ -34,15 +34,9 @@ export default function LoginModal({ onClose }: Props) {
   const handleGoogle = async () => {
     setLoading(true);
     clearMessages();
-    try {
-      await signInWithGoogle();
-      onClose();
-    } catch (e: any) {
-      const msg = ERROR_MAP[e.code] ?? e.message ?? '로그인 중 오류가 발생했습니다.';
-      if (msg) setError(msg);
-    } finally {
-      setLoading(false);
-    }
+    // signInWithRedirect는 페이지 이동이므로 에러 없이 바로 리디렉션됨
+    await signInWithGoogle();
+    // 아래 코드는 리디렉션 후 실행되지 않음
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -130,10 +124,13 @@ export default function LoginModal({ onClose }: Props) {
               <button
                 onClick={handleGoogle}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 border-2 border-gray-200 rounded-xl py-3 hover:border-blue-300 hover:bg-blue-50 transition-all font-medium text-gray-700 mb-4 disabled:opacity-60"
+                className="w-full flex flex-col items-center justify-center gap-1 border-2 border-gray-200 rounded-xl py-3 hover:border-blue-300 hover:bg-blue-50 transition-all font-medium text-gray-700 mb-4 disabled:opacity-60"
               >
-                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-                Google로 로그인
+                <div className="flex items-center gap-3">
+                  <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                  {loading ? 'Google 페이지로 이동 중...' : 'Google로 로그인'}
+                </div>
+                <span className="text-xs text-gray-400 font-normal">클릭하면 Google 로그인 페이지로 이동합니다</span>
               </button>
 
               <div className="flex items-center gap-3 mb-4">
