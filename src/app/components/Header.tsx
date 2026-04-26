@@ -8,7 +8,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -50,24 +50,34 @@ export default function Header() {
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
 
-              {/* 글쓰기 버튼 - 항상 표시, 비로그인 시 로그인 모달 */}
+              {/* 글쓰기 버튼 - 항상 표시 */}
               <button
                 onClick={() => {
+                  if (loading) return;
                   if (isAdmin) navigate('/admin/write');
                   else setShowLogin(true);
                 }}
-                className="hidden sm:flex items-center gap-1.5 bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
+                disabled={loading}
+                className="hidden sm:flex items-center gap-1.5 bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-60"
               >
                 <PenSquare className="w-4 h-4" />
                 글 쓰기
               </button>
 
               {/* 로그인 / 유저 영역 */}
-              {user ? (
+              {loading ? (
+                /* 인증 상태 확인 중 */
+                <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+              ) : user ? (
                 <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="hidden sm:flex flex-col items-end">
+                    <span className="text-xs font-medium text-gray-700">{user.displayName ?? user.email?.split('@')[0]}</span>
+                    {isAdmin && <span className="text-xs text-blue-600 font-semibold">관리자</span>}
+                    {!isAdmin && <span className="text-xs text-red-400">권한없음({user.email})</span>}
+                  </div>
                   <img
-                    src={user.photoURL ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName ?? user.email ?? 'U')}&background=2563eb&color=fff`}
-                    alt={user.displayName ?? ''}
+                    src={user.photoURL ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email ?? 'U')}&background=2563eb&color=fff`}
+                    alt=""
                     className="w-8 h-8 rounded-full border-2 border-blue-200 object-cover"
                     referrerPolicy="no-referrer"
                   />
