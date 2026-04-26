@@ -32,15 +32,7 @@ export default function SEOHead() {
     setMeta({ name: 'twitter:description' }, '부동산, 주식, 코인 투자 정보와 시장 분석');
     setMeta({ name: 'twitter:image' }, 'https://financehub.kr/logo.png');
 
-    // Google AdSense (실제 배포 시 data-ad-client 값을 본인의 AdSense ID로 변경)
-    if (!document.querySelector('script[data-ad-client]')) {
-      const adsenseScript = document.createElement('script');
-      adsenseScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-      adsenseScript.setAttribute('data-ad-client', 'ca-pub-XXXXXXXXXXXXXXXX');
-      adsenseScript.async = true;
-      adsenseScript.crossOrigin = 'anonymous';
-      document.head.appendChild(adsenseScript);
-    }
+    // AdSense 스크립트는 index.html에 직접 삽입됨 (ca-pub-2828377808327336)
   }, []);
 
   return null;
