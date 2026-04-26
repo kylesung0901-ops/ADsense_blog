@@ -50,16 +50,17 @@ export default function Header() {
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
 
-              {/* 관리자: 글쓰기 버튼 */}
-              {isAdmin && (
-                <button
-                  onClick={() => navigate('/admin/write')}
-                  className="hidden sm:flex items-center gap-1.5 bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  <PenSquare className="w-4 h-4" />
-                  글 쓰기
-                </button>
-              )}
+              {/* 글쓰기 버튼 - 항상 표시, 비로그인 시 로그인 모달 */}
+              <button
+                onClick={() => {
+                  if (isAdmin) navigate('/admin/write');
+                  else setShowLogin(true);
+                }}
+                className="hidden sm:flex items-center gap-1.5 bg-blue-600 text-white px-4 py-1.5 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                <PenSquare className="w-4 h-4" />
+                글 쓰기
+              </button>
 
               {/* 로그인 / 유저 영역 */}
               {user ? (
@@ -118,15 +119,18 @@ export default function Header() {
                   </Link>
                 ))}
                 <div className="pt-2 px-3 flex flex-col gap-2">
-                  {isAdmin && (
-                    <button
-                      onClick={() => { navigate('/admin/write'); setIsMenuOpen(false); }}
-                      className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      <PenSquare className="w-4 h-4" />
-                      새 글 쓰기
-                    </button>
-                  )}
+                  {/* 글쓰기 버튼 - 항상 표시 */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      if (isAdmin) navigate('/admin/write');
+                      else setShowLogin(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    <PenSquare className="w-4 h-4" />
+                    글 쓰기
+                  </button>
                   {user ? (
                     <div className="flex items-center justify-between px-1">
                       <div className="flex items-center gap-2">

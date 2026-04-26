@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { Heart, ArrowLeft, Eye, MessageCircle, Bookmark, Share2, Clock } from 'lucide-react';
+import { ArrowLeft, Eye, Bookmark, Share2, Clock } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { staticPosts, type Post } from '../../lib/staticPosts';
 import Header from '../components/Header';
@@ -128,24 +128,24 @@ export default function ArticleDetail() {
 
             {/* 메타 정보 */}
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">{post.author[0]}</span>
+              {post.timeAgo && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{post.timeAgo}</span>
                 </div>
-                <span className="font-medium text-gray-800">{post.author}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>{post.timeAgo}</span>
-              </div>
+              )}
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 <span>{post.views?.toLocaleString()} 조회</span>
               </div>
-              <div className="flex items-center gap-1">
-                <MessageCircle className="w-4 h-4" />
-                <span>{post.comments} 댓글</span>
-              </div>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                post.category === '부동산' ? 'bg-emerald-100 text-emerald-700' :
+                post.category === '주식' ? 'bg-blue-100 text-blue-700' :
+                post.category === '코인' ? 'bg-purple-100 text-purple-700' :
+                'bg-orange-100 text-orange-700'
+              }`}>
+                {post.category}
+              </span>
             </div>
 
             {/* 본문 */}
@@ -172,20 +172,9 @@ export default function ArticleDetail() {
               <AdBanner />
             </div>
 
-            {/* 좋아요 / 북마크 / 공유 */}
+            {/* 북마크 / 공유 */}
             <div className="flex items-center justify-between pt-6 border-t border-gray-100">
               <div className="flex items-center gap-3">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
-                    isLiked
-                      ? 'bg-red-50 border-red-200 text-red-500'
-                      : 'border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                  <span className="text-sm font-medium">{likeCount}</span>
-                </button>
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
                   className={`p-2 rounded-full border transition-all ${
