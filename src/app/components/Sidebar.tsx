@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { TrendingUp, Mail, Eye, CheckCircle, AlertCircle } from 'lucide-react';
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { TrendingUp, Eye } from 'lucide-react';
 import { Link } from 'react-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -36,9 +35,6 @@ const POPULAR_POSTS: PopularPost[] = [
 
 export default function Sidebar() {
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
-  const [subEmail, setSubEmail] = useState('');
-  const [subLoading, setSubLoading] = useState(false);
-  const [subStatus, setSubStatus] = useState<'idle' | 'success' | 'duplicate' | 'error'>('idle');
 
   // Firestore article_views 컬렉션에서 실제 조회수 로드
   useEffect(() => {
@@ -58,33 +54,6 @@ export default function Sidebar() {
     };
     fetchViews();
   }, []);
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!subEmail) return;
-    setSubLoading(true);
-    setSubStatus('idle');
-    try {
-      // 중복 체크
-      const q = query(collection(db, 'subscribers'), where('email', '==', subEmail));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        setSubStatus('duplicate');
-        return;
-      }
-      await addDoc(collection(db, 'subscribers'), {
-        email: subEmail,
-        createdAt: serverTimestamp(),
-        active: true,
-      });
-      setSubStatus('success');
-      setSubEmail('');
-    } catch {
-      setSubStatus('error');
-    } finally {
-      setSubLoading(false);
-    }
-  };
 
   const categories = [
     { name: '부동산', count: null, color: 'bg-emerald-500' },
@@ -167,54 +136,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* 뉴스레터 구독 */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
-        <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
-          <h3 className="font-bold text-sm sm:text-base">뉴스레터 구독</h3>
-        </div>
-        <p className="text-xs sm:text-sm text-blue-100 mb-3 sm:mb-4 leading-relaxed">
-          새 기사가 올라오면 이메일로 바로 받아보세요
-        </p>
-
-        {/* 상태 메시지 */}
-        {subStatus === 'success' && (
-          <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2 mb-3 text-sm">
-            <CheckCircle className="w-4 h-4 shrink-0" />
-            구독 완료! 새 기사 발행 시 메일로 알려드립니다.
-          </div>
-        )}
-        {subStatus === 'duplicate' && (
-          <div className="flex items-center gap-2 bg-yellow-400/30 rounded-lg px-3 py-2 mb-3 text-sm">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            이미 구독 중인 이메일입니다.
-          </div>
-        )}
-        {subStatus === 'error' && (
-          <div className="flex items-center gap-2 bg-red-400/30 rounded-lg px-3 py-2 mb-3 text-sm">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            오류가 발생했습니다. 다시 시도해주세요.
-          </div>
-        )}
-
-        <form onSubmit={handleSubscribe} className="space-y-2">
-          <input
-            type="email"
-            value={subEmail}
-            onChange={e => setSubEmail(e.target.value)}
-            placeholder="이메일 주소"
-            required
-            className="w-full px-3 sm:px-4 py-2.5 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-          />
-          <button
-            type="submit"
-            disabled={subLoading}
-            className="w-full bg-white text-blue-600 font-semibold py-2.5 rounded-lg hover:bg-blue-50 transition-colors text-sm disabled:opacity-60"
-          >
-            {subLoading ? '처리 중...' : '구독하기'}
-          </button>
-        </form>
-      </div>
 
       {/* 광고 공간 2 */}
       <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-dashed border-gray-300">
