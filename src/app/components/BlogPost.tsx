@@ -92,9 +92,9 @@ export default function BlogPost({
                 {timeAgo}
               </span>
             )}
+            {/* 눈 아이콘만 표시 — 실제 조회수는 기사 상세에서 확인 */}
             <span className="flex items-center gap-1">
               <Eye className="w-3 h-3" />
-              {views?.toLocaleString()}
             </span>
           </div>
 

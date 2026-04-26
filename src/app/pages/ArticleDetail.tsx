@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, increment } from 'firebase/firestore';
 import { ArrowLeft, Eye, Bookmark, Share2, Clock } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { staticPosts, type Post } from '../../lib/staticPosts';
@@ -22,8 +22,7 @@ export default function ArticleDetail() {
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const [realViews, setRealViews] = useState<number | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
@@ -31,22 +30,31 @@ export default function ArticleDetail() {
     window.scrollTo(0, 0);
 
     if (id.startsWith('static-')) {
-      // 정적 포스트
+      // 정적 포스트: Firestore article_views 컬렉션에 실제 조회수 기록
       const found = staticPosts.find((p) => p.id === id);
-      if (found) {
-        setPost(found);
-        setLikeCount(found.likes);
-      }
+      if (found) setPost(found);
       setLoading(false);
+
+      const viewRef = doc(db, 'article_views', id);
+      getDoc(viewRef).then(async (snap) => {
+        const current = snap.exists() ? (snap.data().count ?? 0) : 0;
+        const next = current + 1;
+        if (snap.exists()) {
+          await updateDoc(viewRef, { count: increment(1) }).catch(() => {});
+        } else {
+          await setDoc(viewRef, { count: 1 }).catch(() => {});
+        }
+        setRealViews(next);
+      }).catch(() => {});
     } else {
-      // Firestore 포스트
+      // Firestore 포스트: views 필드 직접 증가
       const ref = doc(db, 'posts', id);
-      getDoc(ref).then((snap) => {
+      getDoc(ref).then(async (snap) => {
         if (snap.exists()) {
           const data = { id: snap.id, ...snap.data() } as Post;
           setPost(data);
-          setLikeCount(data.likes ?? 0);
-          // 조회수 증가
+          const next = (data.views ?? 0) + 1;
+          setRealViews(next);
           updateDoc(ref, { views: increment(1) }).catch(() => {});
         }
         setLoading(false);
@@ -134,10 +142,12 @@ export default function ArticleDetail() {
                   <span>{post.timeAgo}</span>
                 </div>
               )}
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                <span>{post.views?.toLocaleString()} 조회</span>
-              </div>
+              {realViews !== null && (
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  <span>{realViews.toLocaleString()} 조회</span>
+                </div>
+              )}
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                 post.category === '부동산' ? 'bg-emerald-100 text-emerald-700' :
                 post.category === '주식' ? 'bg-blue-100 text-blue-700' :
